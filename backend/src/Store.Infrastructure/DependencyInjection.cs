@@ -3,6 +3,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Store.Application.Common.Interfaces;
 using Store.Application.Common.Settings;
+using Store.Infrastructure.Files;
 using Store.Infrastructure.Persistence;
 using Store.Infrastructure.Security;
 
@@ -23,6 +24,9 @@ public static class DependencyInjection
         services.Configure<JwtSettings>(configuration.GetSection(JwtSettings.SectionName));
         services.AddScoped<IPasswordHasher, PasswordHasher>();
         services.AddScoped<IJwtTokenService, JwtTokenService>();
+
+        services.Configure<FileStorageSettings>(configuration.GetSection(FileStorageSettings.SectionName));
+        services.AddScoped<IFileStorageService, LocalFileStorageService>();
 
         return services;
     }

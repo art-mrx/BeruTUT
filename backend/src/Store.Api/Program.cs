@@ -9,6 +9,8 @@ using Store.Application;
 using Store.Application.Common.Interfaces;
 using Store.Application.Common.Settings;
 using Store.Infrastructure;
+using Store.Infrastructure.Persistence;
+using Store.Infrastructure.Persistence.Seed;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -68,6 +70,14 @@ if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
+
+    using var seedScope = app.Services.CreateScope();
+    var seedProvider = seedScope.ServiceProvider;
+    await DbSeeder.SeedAdminAsync(
+        seedProvider.GetRequiredService<StoreDbContext>(),
+        seedProvider.GetRequiredService<IPasswordHasher>(),
+        seedProvider.GetRequiredService<IConfiguration>(),
+        seedProvider.GetRequiredService<ILoggerFactory>().CreateLogger("DbSeeder"));
 }
 
 app.UseMiddleware<ExceptionHandlingMiddleware>();
@@ -75,6 +85,8 @@ app.UseMiddleware<ExceptionHandlingMiddleware>();
 app.UseSerilogRequestLogging();
 
 app.UseHttpsRedirection();
+
+app.UseStaticFiles();
 
 app.UseAuthentication();
 app.UseAuthorization();

@@ -33,6 +33,15 @@
 - Connection string лежит в `backend/src/Store.Api/appsettings.json` (`ConnectionStrings:DefaultConnection`) — это dev-заглушка с несекретным локальным паролем, для прод/реальных секретов при деплое переходим на env vars / User Secrets (см. ТЗ п.6).
 - Docker + docker-compose добавим позже (пользователь хочет подключить, когда почините Docker на устройстве) — Dockerfile/compose файлы можно написать заранее, не запуская.
 
+## Categories + Products
+- Поиск по товарам (`search`) сделан через `p.Name.ToLower().Contains(term)` (а не Npgsql-специфичный `EF.Functions.ILike`) — чтобы Application-слой не тянул зависимость на конкретного провайдера БД (Npgsql), которая должна жить только в Infrastructure. Небольшая цена — не использует GIN/trigram индекс, для MVP-масштаба не важно.
+- Списки используют `AutoMapper.ProjectTo<T>()` (не `.Map()` после загрузки сущностей) — проекция сразу в SQL, без лишних колонок/N+1.
+- `DELETE /api/products/{id}` — это **деактивация** (`IsActive=false`), не удаление строки (см. ТЗ "удалить/деактивировать"), чтобы не ломать FK из OrderItem/CartItem при будущих заказах.
+- `DELETE /api/categories/{id}` — жёсткое удаление, но с явной проверкой в хендлере: если есть товары или подкатегории — 409 Conflict с понятным сообщением (а не сырая ошибка БД от FK `Restrict`).
+- **Загрузка изображений**: `IFileStorageService` (Application) → `LocalFileStorageService` (Infrastructure) сохраняет файлы на диск в `Store.Api/wwwroot/uploads/products/`, раздаётся через `app.UseStaticFiles()`. Это временное dev-решение — когда дойдём до деплоя, заменить на реализацию поверх S3/Cloudinary/Azure Blob и подменить только DI-регистрацию (интерфейс в Application не поменяется). Сами файлы — в `.gitignore` (папка с `.gitkeep`, чтобы структура была в репо).
+- **Admin-пользователь для тестирования**: `Store.Infrastructure/Persistence/Seed/DbSeeder.cs` создаёт одного Admin-пользователя при старте в Development, если Admin ещё нет. Email/FullName — в `appsettings.json` (`AdminSeed:Email`/`FullName`, не секрет), пароль — только в `dotnet user-secrets` (`AdminSeed:Password`); если секрет не задан, сидинг просто пропускается с warning в логах. Текущий пароль пользователю продиктован в чате при создании — если потерян, сгенерировать новый: `dotnet user-secrets set "AdminSeed:Password" "<новый>" --project src/Store.Api`, удалить admin-строку из таблицы `Users` и перезапустить API.
+- В локальной dev-БД сейчас лежат тестовые категория "Electronics" и товары "USB Cable"/"Gaming Laptop" (созданы при smoke-тесте) — оставлены специально как образец данных для будущей разработки фронтенда, не нужно удалять.
+
 ## Прочее
 - Node.js LTS установлен через winget по ходу этапа 1 (понадобится для frontend, этап 5).
 - `dotnet-ef` CLI установлен глобально, версия 10.x (новее пакетов EFCore 8.x в проекте) — миграции генерируются нормально, проблем не было.

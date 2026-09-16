@@ -481,6 +481,10 @@ $RECYCLE.BIN/
 # Vim temporary swap files
 *.swp
 
+## Uploaded product images (dev-local storage, see docs/DECISIONS.md)
+backend/src/Store.Api/wwwroot/uploads/products/*
+!backend/src/Store.Api/wwwroot/uploads/products/.gitkeep
+
 ## Node / frontend (frontend/)
 node_modules/
 frontend/dist/

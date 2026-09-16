@@ -1,10 +1,13 @@
 import { Link, Outlet } from 'react-router-dom'
 import { useAuthStore } from '@/features/auth/authStore'
+import { useCart } from '@/features/cart/useCart'
 import { useLogout } from '@/hooks/useLogout'
 
 export function Layout() {
   const user = useAuthStore((state) => state.user)
   const logout = useLogout()
+  const { data: cart } = useCart()
+  const itemCount = cart?.items.reduce((sum, item) => sum + item.quantity, 0) ?? 0
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -14,7 +17,7 @@ export function Layout() {
             BeruTUT
           </Link>
           <div className="flex items-center gap-4 text-sm text-gray-700">
-            <Link to="/cart">Корзина</Link>
+            <Link to="/cart">Корзина{itemCount > 0 && ` (${itemCount})`}</Link>
             {user ? (
               <>
                 <Link to="/orders">Мои заказы</Link>

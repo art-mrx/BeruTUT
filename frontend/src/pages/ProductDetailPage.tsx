@@ -1,12 +1,19 @@
 import { useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
-import { formatPrice } from '@/lib/format'
+import { Link, useLocation, useParams } from 'react-router-dom'
 import { useProduct } from '@/features/catalog/useProduct'
+import { useAddCartItem } from '@/features/cart/useCartMutations'
+import { useAuthStore } from '@/features/auth/authStore'
+import { getApiErrorMessage } from '@/lib/apiError'
+import { formatPrice } from '@/lib/format'
 
 export function ProductDetailPage() {
   const { slug } = useParams<{ slug: string }>()
+  const location = useLocation()
   const { data: product, isLoading, isError } = useProduct(slug)
   const [activeImage, setActiveImage] = useState(0)
+  const [quantity, setQuantity] = useState(1)
+  const isAuthenticated = useAuthStore((state) => Boolean(state.user))
+  const addCartItem = useAddCartItem()
 
   if (isLoading) {
     return <p className="text-gray-500">Загрузка…</p>
@@ -68,7 +75,54 @@ export function ProductDetailPage() {
 
         {product.description && <p className="mt-4 whitespace-pre-line text-gray-700">{product.description}</p>}
 
-        <p className="mt-6 text-sm text-gray-400">Добавление в корзину появится на этапе 8.</p>
+        {product.stockQuantity > 0 && (
+          <div className="mt-6">
+            {isAuthenticated ? (
+              <>
+                <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setQuantity((q) => Math.max(1, q - 1))}
+                      className="h-8 w-8 rounded border border-gray-300 text-sm"
+                    >
+                      −
+                    </button>
+                    <span className="w-6 text-center">{quantity}</span>
+                    <button
+                      type="button"
+                      onClick={() => setQuantity((q) => Math.min(product.stockQuantity, q + 1))}
+                      className="h-8 w-8 rounded border border-gray-300 text-sm"
+                    >
+                      +
+                    </button>
+                  </div>
+                  <button
+                    type="button"
+                    disabled={addCartItem.isPending}
+                    onClick={() => addCartItem.mutate({ productId: product.id, quantity })}
+                    className="rounded bg-gray-900 px-5 py-2 text-sm font-medium text-white disabled:opacity-50"
+                  >
+                    {addCartItem.isPending ? 'Добавляем…' : 'В корзину'}
+                  </button>
+                </div>
+                {addCartItem.isError && (
+                  <p className="mt-2 text-sm text-red-600">
+                    {getApiErrorMessage(addCartItem.error, 'Не удалось добавить товар в корзину.')}
+                  </p>
+                )}
+                {addCartItem.isSuccess && <p className="mt-2 text-sm text-green-700">Добавлено в корзину.</p>}
+              </>
+            ) : (
+              <p className="text-sm text-gray-600">
+                <Link to="/login" state={{ from: location }} className="text-blue-600 hover:underline">
+                  Войдите
+                </Link>
+                , чтобы добавить товар в корзину.
+              </p>
+            )}
+          </div>
+        )}
       </div>
     </div>
   )

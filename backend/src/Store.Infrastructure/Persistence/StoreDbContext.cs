@@ -1,9 +1,10 @@
 using Microsoft.EntityFrameworkCore;
+using Store.Application.Common.Interfaces;
 using Store.Domain.Entities;
 
 namespace Store.Infrastructure.Persistence;
 
-public class StoreDbContext : DbContext
+public class StoreDbContext : DbContext, IApplicationDbContext
 {
     public StoreDbContext(DbContextOptions<StoreDbContext> options) : base(options)
     {
@@ -17,6 +18,7 @@ public class StoreDbContext : DbContext
     public DbSet<CartItem> CartItems => Set<CartItem>();
     public DbSet<Order> Orders => Set<Order>();
     public DbSet<OrderItem> OrderItems => Set<OrderItem>();
+    public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

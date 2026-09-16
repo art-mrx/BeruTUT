@@ -15,7 +15,17 @@
 - Solution-файл в новом XML-формате `.slnx` (дефолт для `dotnet new sln` на SDK 10) — это нормально, открывается в VS/Rider/CLI.
 
 ## Auth
-- Выбран **кастомный JWT** (не ASP.NET Core Identity) — решение пользователя, этап 2.
+- Выбран **кастомный JWT** (не ASP.NET Core Identity) — решение пользователя.
+- **Доступ к данным из Application-слоя**: вместо generic `IRepository<T>` (как буквально предлагал ТЗ п.3) сделан `IApplicationDbContext` (Store.Application/Common/Interfaces) с `DbSet<T>` — реализует `StoreDbContext`. Это стандартный паттерн для связки CQRS+MediatR+EF Core (Jason Taylor Clean Architecture template) — EF Core `DbSet` уже даёт repository+unit-of-work, обёртка над ним поверх лишняя. Application-проект из-за этого зависит от пакета `Microsoft.EntityFrameworkCore` (только ради типа `DbSet<T>`, без провайдера БД) — это нормально и намеренно.
+- **Refresh-токены — senior-подход**: таблица `RefreshTokens` в БД, хранится НЕ сырой токен, а его SHA-256 хеш (`TokenHash`, уникальный индекс). Сырой токен — 64 случайных байта (`RandomNumberGenerator`), отдаётся клиенту один раз.
+  - **Ротация**: при каждом `/api/auth/refresh` старый токен помечается `RevokedAt`, выдаётся новый (тот же как OAuth refresh token rotation).
+  - **Reuse-detection**: если пришёл токен, у которого `RevokedAt` уже проставлен (т.е. его уже использовали или отозвали) — считаем это признаком кражи и отзываем ВСЕ активные refresh-токены пользователя, требуем перелогин. Из-за этого logout тоже отдаёт "reuse detected" при повторном рефреше уже разлогиненной сессии — это нормально и безопасно (не различаем "украли" от "разлогинились", в обоих случаях доступ закрыт).
+  - Пароли — `Microsoft.AspNetCore.Identity.PasswordHasher<User>` (пакет `Microsoft.Extensions.Identity.Core`, НЕ полный Identity — только алгоритм хеширования, PBKDF2). Это то, что подразумевало ТЗ п.6 ("BCrypt/Identity hasher").
+  - JWT signing key сгенерирован (64 случайных байта, base64) и лежит в `dotnet user-secrets` проекта Store.Api (НЕ в git). Локально уже настроено — если БД/секреты потеряются на новой машине, надо заново: `dotnet user-secrets set "Jwt:SigningKey" "<base64>"` внутри `backend/src/Store.Api`.
+- **`POST /api/auth/logout`** добавлен сверх списка эндпоинтов из ТЗ п.5 — раз завели БД-backed refresh-токены с возможностью отзыва, endpoint для явного отзыва напрашивался сам собой.
+- **Единая обработка ошибок** (ТЗ п.6) реализована уже на этом этапе, не отложена на "Полировку" (этап 10) — `Store.Api/Middleware/ExceptionHandlingMiddleware.cs` мапит кастомные исключения (`Store.Application.Common.Exceptions.*`) в ProblemDetails: `ValidationException`→400, `AuthenticationException`→401, `NotFoundException`→404, `ConflictException`→409, всё остальное→500 (с логом полного стектрейса через Serilog, наружу — только общее сообщение).
+- FluentValidation подключен через `ValidationBehavior` — MediatR pipeline behavior, все валидаторы гоняются автоматически перед хендлером, ничего вручную вызывать не надо.
+- Namespace-ловушка C#: папка/namespace команды `RefreshToken` конфликтовала с именем сущности `Store.Domain.Entities.RefreshToken` (компилятор ищет вложенные namespace'ы раньше using-алиасов) — решено переименованием в `Commands/RefreshTokens` (множественное число). Если заводите новую команду/namespace с именем, совпадающим с именем сущности — сразу называйте во множественном числе, чтобы не наступить на то же самое.
 
 ## Локальная БД
 - Docker на устройстве пользователя пока не работает — используем локально установленный **PostgreSQL 18** (служба `postgresql-x64-18` в Windows), НЕ контейнер.

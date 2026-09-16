@@ -13,4 +13,10 @@ public class GetProductsQuery : IRequest<PaginatedList<ProductDto>>
     public string? SortBy { get; set; }
     public decimal? MinPrice { get; set; }
     public decimal? MaxPrice { get; set; }
+
+    /// <summary>
+    /// Only honored by the Admin-only endpoint (AdminProductsController), which forces this
+    /// to true regardless of client input. The public products endpoint never sets it.
+    /// </summary>
+    public bool IncludeInactive { get; set; }
 }

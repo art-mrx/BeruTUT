@@ -8,7 +8,12 @@ export interface ProductPayload {
   price: number
   stockQuantity: number
   categoryId: string
-  isActive?: boolean
+}
+
+// The backend's UpdateProductCommand.IsActive is a required bool (defaults to false if
+// omitted) — always send the product's current active state explicitly on update.
+export interface ProductUpdatePayload extends ProductPayload {
+  isActive: boolean
 }
 
 export const productsApi = {
@@ -19,7 +24,7 @@ export const productsApi = {
 
   create: (payload: ProductPayload) => apiClient.post<Product>('/products', payload).then((r) => r.data),
 
-  update: (id: string, payload: ProductPayload) =>
+  update: (id: string, payload: ProductUpdatePayload) =>
     apiClient.put<Product>(`/products/${id}`, payload).then((r) => r.data),
 
   remove: (id: string) => apiClient.delete<void>(`/products/${id}`).then((r) => r.data),
@@ -33,4 +38,9 @@ export const productsApi = {
       })
       .then((r) => r.data)
   },
+}
+
+export const adminProductsApi = {
+  list: (params: ProductListParams = {}) =>
+    apiClient.get<PaginatedList<Product>>('/admin/products', { params }).then((r) => r.data),
 }

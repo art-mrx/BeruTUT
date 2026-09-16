@@ -20,7 +20,9 @@ public class GetProductsQueryHandler : IRequestHandler<GetProductsQuery, Paginat
 
     public Task<PaginatedList<ProductDto>> Handle(GetProductsQuery request, CancellationToken cancellationToken)
     {
-        var query = _context.Products.Where(p => p.IsActive);
+        var query = request.IncludeInactive
+            ? _context.Products.AsQueryable()
+            : _context.Products.Where(p => p.IsActive);
 
         if (request.CategoryId is not null)
         {

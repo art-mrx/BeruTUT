@@ -41,7 +41,18 @@
    - [x] Юнит-тесты (ТЗ п.9): расчёт суммы заказа, списание остатков, отказ при нехватке остатков, пустая корзина, накопление количества в корзине — на реальном `StoreDbContext` через EF Core InMemory provider (не моки LINQ), + тест валидности всех AutoMapper-профилей. 6/6 зелёных
    - [x] Исправлен баг: JSON-тело не принимало enum по строковому имени (`"status":"Processing"`) — добавлен `JsonStringEnumConverter` глобально
    - [x] Ручной smoke-тест через curl: полный цикл корзина→заказ→смена статуса, права доступа (403 не-админу), фильтр по статусу, конфликт при пустой корзине — всё подтверждено
-5. **Frontend skeleton** — `todo` (Node.js LTS уже установлен)
+5. **Frontend skeleton** — `done`
+   - [x] Vite + React 18 + TypeScript (см. DECISIONS.md — почему React 18, а не React Router 6, версии зафиксированы/отклонены осознанно)
+   - [x] Структура папок по ТЗ п.7: `api/`, `components/`, `features/{auth,catalog,cart,orders,admin}`, `pages/`, `routes/`, `hooks/`, `types/`
+   - [x] Tailwind CSS v4 подключен через `@tailwindcss/vite`, alias `@/*` → `src/*` (vite.config.ts + tsconfig)
+   - [x] `api/client.ts` — axios-инстанс: подстановка access token, single-flight refresh при 401 (учитывает ротацию refresh-токенов на бэкенде — см. DECISIONS.md)
+   - [x] `api/{auth,categories,products,cart,orders}.ts` — типизированные функции для всех эндпоинтов backend
+   - [x] `types/` — TS-типы, зеркалящие backend DTO (camelCase, как отдаёт System.Text.Json)
+   - [x] `features/auth/authStore.ts` — Zustand-стор с персистентностью в localStorage
+   - [x] React Router v6→v7 (см. DECISIONS.md, security-апгрейд) + `ProtectedRoute`/`AdminRoute` + роуты под все страницы MVP (наполнение — этапы 6-9, сейчас заглушки)
+   - [x] React Query (`QueryClientProvider`) подключен в `main.tsx`
+   - [x] Dev-прокси Vite `/api` и `/uploads` → `http://localhost:5080` (не нужен CORS в деве)
+   - [x] Проверено: `npm run build`, `tsc -b`, `npm run lint` — чисто; dev-сервер отдаёт реальные данные с backend через прокси; `ProtectedRoute`/`AdminRoute` корректно редиректят неавторизованных на `/login`
 6. **Каталог (frontend)** — `todo`
 7. **Auth (frontend)** — `todo`
 8. **Корзина и чекаут (frontend)** — `todo`
@@ -49,6 +60,8 @@
 10. **Полировка** — `todo`
 
 ## Следующий шаг
-Backend по MVP из раздела 8 — готов (этапы 1-4). Этап 5: **Frontend skeleton** — Vite-проект, роутинг, Tailwind, API-клиент, React Query. Node.js уже установлен.
+Этап 6: **Каталог (frontend)** — список товаров, фильтры, карточка товара. Наполнить `HomePage`/`ProductDetailPage` реальным содержимым через `api/products.ts` + React Query.
 
-В локальной БД есть sample-данные для будущей разработки фронтенда: admin (`admin@store.local`), покупатель `buyer1@example.com`/`Password123`, категория Electronics, товар Gaming Laptop, один оформленный заказ.
+Запуск для разработки: backend — `cd backend/src/Store.Api && dotnet run` (порт 5080), frontend — `cd frontend && npm run dev` (порт 5173, прокси на 5080 уже настроен).
+
+В локальной БД есть sample-данные для разработки фронтенда: admin (`admin@store.local`), покупатель `buyer1@example.com`/`Password123`, категория Electronics, товар Gaming Laptop, один оформленный заказ.

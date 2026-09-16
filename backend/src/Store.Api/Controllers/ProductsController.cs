@@ -27,16 +27,16 @@ public class ProductsController : ControllerBase
     public async Task<ActionResult<PaginatedList<ProductDto>>> GetAll([FromQuery] GetProductsQuery query, CancellationToken cancellationToken)
         => Ok(await _mediator.Send(query, cancellationToken));
 
-    [HttpGet("{id:guid}")]
-    public async Task<ActionResult<ProductDto>> GetById(Guid id, CancellationToken cancellationToken)
-        => Ok(await _mediator.Send(new GetProductByIdQuery { Id = id }, cancellationToken));
+    [HttpGet("{idOrSlug}")]
+    public async Task<ActionResult<ProductDto>> GetById(string idOrSlug, CancellationToken cancellationToken)
+        => Ok(await _mediator.Send(new GetProductByIdQuery { IdOrSlug = idOrSlug }, cancellationToken));
 
     [Authorize(Roles = "Admin")]
     [HttpPost]
     public async Task<ActionResult<ProductDto>> Create(CreateProductCommand command, CancellationToken cancellationToken)
     {
         var result = await _mediator.Send(command, cancellationToken);
-        return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
+        return CreatedAtAction(nameof(GetById), new { idOrSlug = result.Id }, result);
     }
 
     [Authorize(Roles = "Admin")]

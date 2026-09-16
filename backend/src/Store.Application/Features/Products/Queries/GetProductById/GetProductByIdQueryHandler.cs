@@ -21,11 +21,13 @@ public class GetProductByIdQueryHandler : IRequestHandler<GetProductByIdQuery, P
 
     public async Task<ProductDto> Handle(GetProductByIdQuery request, CancellationToken cancellationToken)
     {
+        var isGuid = Guid.TryParse(request.IdOrSlug, out var id);
+
         var product = await _context.Products
-            .Where(p => p.Id == request.Id && p.IsActive)
+            .Where(p => p.IsActive && ((isGuid && p.Id == id) || p.Slug == request.IdOrSlug))
             .ProjectTo<ProductDto>(_mapper.ConfigurationProvider)
             .FirstOrDefaultAsync(cancellationToken);
 
-        return product ?? throw new NotFoundException(nameof(Domain.Entities.Product), request.Id);
+        return product ?? throw new NotFoundException(nameof(Domain.Entities.Product), request.IdOrSlug);
     }
 }

@@ -53,15 +53,22 @@
    - [x] React Query (`QueryClientProvider`) подключен в `main.tsx`
    - [x] Dev-прокси Vite `/api` и `/uploads` → `http://localhost:5080` (не нужен CORS в деве)
    - [x] Проверено: `npm run build`, `tsc -b`, `npm run lint` — чисто; dev-сервер отдаёт реальные данные с backend через прокси; `ProtectedRoute`/`AdminRoute` корректно редиректят неавторизованных на `/login`
-6. **Каталог (frontend)** — `todo`
+6. **Каталог (frontend)** — `done`
+   - [x] `HomePage` — сетка товаров, фильтры (поиск/категория/цена/сортировка) синхронизированы с URL query-параметрами через `useSearchParams` (шарибельные/букмаркабельные ссылки, работает back/forward браузера), пагинация
+   - [x] `ProductDetailPage` — карточка товара по **slug** (не id — см. backend-фикс ниже), галерея изображений, наличие
+   - [x] `features/catalog/{useProducts,useProduct,useCategories}.ts` — React Query хуки
+   - [x] `features/catalog/ProductFilters.tsx` — debounce на поиске и вводе цены (300мс), чтобы не долбить API на каждое нажатие клавиши
+   - [x] `components/{ProductCard,Pagination}.tsx` — переиспользуемые
+   - [x] **Backend-фикс**: `GET /api/products/{id}` теперь принимает id ИЛИ slug (`GetProductByIdQuery.IdOrSlug`) — ТЗ п.7 явно требует маршрут `/products/:slug`, а backend на этапе 3 поддерживал только Guid-поиск. Один эндпоинт обслуживает оба случая (Admin CRUD продолжает ходить по Guid, публичная карточка — по slug)
+   - [x] Ручная проверка в браузере: поиск с debounce, сортировка по цене, синхронизация URL, переход по карточке на `/products/gaming-laptop` — всё подтверждено на реальных данных (добавил 8 sample-товаров для проверки сетки/сортировки)
 7. **Auth (frontend)** — `todo`
 8. **Корзина и чекаут (frontend)** — `todo`
 9. **Админка (frontend)** — `todo`
 10. **Полировка** — `todo`
 
 ## Следующий шаг
-Этап 6: **Каталог (frontend)** — список товаров, фильтры, карточка товара. Наполнить `HomePage`/`ProductDetailPage` реальным содержимым через `api/products.ts` + React Query.
+Этап 7: **Auth (frontend)** — формы логина/регистрации (React Hook Form + Zod), реальное подключение `authStore`/`api/auth.ts` (сейчас стор есть, но ничего его не заполняет — страницы `LoginPage`/`RegisterPage` всё ещё заглушки), protected routes уже готовы с этапа 5.
 
 Запуск для разработки: backend — `cd backend/src/Store.Api && dotnet run` (порт 5080), frontend — `cd frontend && npm run dev` (порт 5173, прокси на 5080 уже настроен).
 
-В локальной БД есть sample-данные для разработки фронтенда: admin (`admin@store.local`), покупатель `buyer1@example.com`/`Password123`, категория Electronics, товар Gaming Laptop, один оформленный заказ.
+В локальной БД есть sample-данные для разработки фронтенда: admin (`admin@store.local`), покупатель `buyer1@example.com`/`Password123`, категория Electronics, 9 товаров (Gaming Laptop + 8 sample-товаров с ценами $29.99-$349), один оформленный заказ.

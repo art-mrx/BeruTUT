@@ -61,13 +61,20 @@
    - [x] `components/{ProductCard,Pagination}.tsx` — переиспользуемые
    - [x] **Backend-фикс**: `GET /api/products/{id}` теперь принимает id ИЛИ slug (`GetProductByIdQuery.IdOrSlug`) — ТЗ п.7 явно требует маршрут `/products/:slug`, а backend на этапе 3 поддерживал только Guid-поиск. Один эндпоинт обслуживает оба случая (Admin CRUD продолжает ходить по Guid, публичная карточка — по slug)
    - [x] Ручная проверка в браузере: поиск с debounce, сортировка по цене, синхронизация URL, переход по карточке на `/products/gaming-laptop` — всё подтверждено на реальных данных (добавил 8 sample-товаров для проверки сетки/сортировки)
-7. **Auth (frontend)** — `todo`
+7. **Auth (frontend)** — `done`
+   - [x] `LoginPage`/`RegisterPage` — React Hook Form + Zod (клиентская валидация: email-формат, длина пароля, совпадение пароля/подтверждения)
+   - [x] `features/auth/{useLogin,useRegister}.ts` — React Query мутации, на успехе кладут результат в `authStore`
+   - [x] Серверные ошибки: field-level (400 validation) мапятся на конкретные поля формы через `setError`, остальные (401 неверный пароль, 409 дубликат email) — общий баннер над кнопкой submit (`lib/apiError.ts`)
+   - [x] Редирект после логина на страницу, с которой пришёл неавторизованный пользователь (`location.state.from`, выставляется в `ProtectedRoute` с этапа 5)
+   - [x] Залогиненного пользователя со страниц `/login`/`/register` редиректит на главную
+   - [x] `Layout` уже был подключен к `authStore`/`useLogout` с этапа 5 — теперь наконец есть чем его наполнить
+   - [x] Ручной прогон в браузере на реальном backend: регистрация → авто-логин → persist после full reload → protected route без редиректа → logout → редирект на `/login` → неверный пароль (401, баннер) → верный пароль (редирект на исходную "from"-страницу) → повторная регистрация тем же email (409, баннер) — всё подтверждено
 8. **Корзина и чекаут (frontend)** — `todo`
 9. **Админка (frontend)** — `todo`
 10. **Полировка** — `todo`
 
 ## Следующий шаг
-Этап 7: **Auth (frontend)** — формы логина/регистрации (React Hook Form + Zod), реальное подключение `authStore`/`api/auth.ts` (сейчас стор есть, но ничего его не заполняет — страницы `LoginPage`/`RegisterPage` всё ещё заглушки), protected routes уже готовы с этапа 5.
+Этап 8: **Корзина и чекаут (frontend)** — `CartPage`/`CheckoutPage`/`OrdersPage`/`OrderDetailPage` наполнить реальным содержимым через `api/cart.ts`/`api/orders.ts` + React Query. Плюс добавить кнопку "в корзину" на `ProductDetailPage` (осознанно не делали на этапе 6).
 
 Запуск для разработки: backend — `cd backend/src/Store.Api && dotnet run` (порт 5080), frontend — `cd frontend && npm run dev` (порт 5173, прокси на 5080 уже настроен).
 

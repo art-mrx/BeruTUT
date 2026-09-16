@@ -12,17 +12,17 @@ export function Layout() {
   return (
     <div className="min-h-screen bg-gray-50">
       <header className="border-b border-gray-200 bg-white">
-        <nav className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
+        <nav className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-x-4 gap-y-2 px-4 py-3">
           <Link to="/" className="text-lg font-semibold text-gray-900">
             BeruTUT
           </Link>
-          <div className="flex items-center gap-4 text-sm text-gray-700">
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-gray-700">
             <Link to="/cart">Корзина{itemCount > 0 && ` (${itemCount})`}</Link>
             {user ? (
               <>
                 <Link to="/orders">Мои заказы</Link>
                 {user.role === 'Admin' && <Link to="/admin/products">Админка</Link>}
-                <span className="text-gray-400">{user.email}</span>
+                <span className="hidden text-gray-400 sm:inline">{user.email}</span>
                 <button type="button" onClick={logout} className="text-gray-700 hover:text-gray-900">
                   Выйти
                 </button>

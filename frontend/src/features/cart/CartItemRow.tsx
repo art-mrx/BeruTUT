@@ -14,7 +14,7 @@ export function CartItemRow({ item }: { item: CartItem }) {
   }
 
   return (
-    <div className="flex items-center gap-4 border-b border-gray-200 py-4 last:border-0">
+    <div className="flex flex-wrap items-center gap-4 border-b border-gray-200 py-4 last:border-0">
       <div className="h-16 w-16 flex-shrink-0 overflow-hidden rounded bg-gray-100">
         {item.imageUrl ? (
           <img src={item.imageUrl} alt={item.productName} className="h-full w-full object-cover" />
@@ -23,7 +23,7 @@ export function CartItemRow({ item }: { item: CartItem }) {
         )}
       </div>
 
-      <div className="flex-1">
+      <div className="min-w-[140px] flex-1">
         <p className="font-medium text-gray-900">{item.productName}</p>
         <p className="text-sm text-gray-500">{formatPrice(item.price)}</p>
         {updateItem.isError && (
@@ -31,36 +31,38 @@ export function CartItemRow({ item }: { item: CartItem }) {
         )}
       </div>
 
-      <div className="flex items-center gap-2">
+      <div className="ml-auto flex flex-wrap items-center gap-4">
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => changeQuantity(-1)}
+            disabled={item.quantity <= 1 || updateItem.isPending}
+            className="h-7 w-7 rounded border border-gray-300 text-sm disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            −
+          </button>
+          <span className="w-6 text-center text-sm">{item.quantity}</span>
+          <button
+            type="button"
+            onClick={() => changeQuantity(1)}
+            disabled={updateItem.isPending}
+            className="h-7 w-7 rounded border border-gray-300 text-sm disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            +
+          </button>
+        </div>
+
+        <p className="w-20 text-right font-medium text-gray-900">{formatPrice(item.lineTotal)}</p>
+
         <button
           type="button"
-          onClick={() => changeQuantity(-1)}
-          disabled={item.quantity <= 1 || updateItem.isPending}
-          className="h-7 w-7 rounded border border-gray-300 text-sm disabled:cursor-not-allowed disabled:opacity-40"
+          onClick={() => removeItem.mutate(item.id)}
+          disabled={removeItem.isPending}
+          className="text-sm text-gray-400 hover:text-red-600 disabled:opacity-40"
         >
-          −
-        </button>
-        <span className="w-6 text-center text-sm">{item.quantity}</span>
-        <button
-          type="button"
-          onClick={() => changeQuantity(1)}
-          disabled={updateItem.isPending}
-          className="h-7 w-7 rounded border border-gray-300 text-sm disabled:cursor-not-allowed disabled:opacity-40"
-        >
-          +
+          Удалить
         </button>
       </div>
-
-      <p className="w-20 text-right font-medium text-gray-900">{formatPrice(item.lineTotal)}</p>
-
-      <button
-        type="button"
-        onClick={() => removeItem.mutate(item.id)}
-        disabled={removeItem.isPending}
-        className="text-sm text-gray-400 hover:text-red-600 disabled:opacity-40"
-      >
-        Удалить
-      </button>
     </div>
   )
 }

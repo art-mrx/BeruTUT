@@ -215,7 +215,8 @@ export function AdminProductsPage() {
 
       {products && (
         <>
-          <table className="w-full overflow-hidden rounded-lg border border-gray-200 bg-white text-sm">
+          <div className="overflow-x-auto rounded-lg border border-gray-200">
+          <table className="w-full min-w-[640px] bg-white text-sm">
             <thead className="bg-gray-50 text-left text-gray-600">
               <tr>
                 <th className="px-4 py-2 font-medium">Товар</th>
@@ -275,6 +276,7 @@ export function AdminProductsPage() {
               ))}
             </tbody>
           </table>
+          </div>
           <Pagination page={products.page} totalPages={products.totalPages} onPageChange={setPage} />
         </>
       )}

@@ -9,6 +9,8 @@ public class User : BaseEntity
     public string PasswordHash { get; set; } = null!;
     public string FullName { get; set; } = null!;
     public UserRole Role { get; set; } = UserRole.Customer;
+    public bool IsBlocked { get; set; }
+    public DateTime? BlockedAt { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     public Cart? Cart { get; set; }

@@ -4,6 +4,7 @@ import { Layout } from '@/components/Layout'
 import { AdminCategoriesPage } from '@/pages/admin/AdminCategoriesPage'
 import { AdminOrdersPage } from '@/pages/admin/AdminOrdersPage'
 import { AdminProductsPage } from '@/pages/admin/AdminProductsPage'
+import { AdminUsersPage } from '@/pages/admin/AdminUsersPage'
 import { CartPage } from '@/pages/CartPage'
 import { CheckoutPage } from '@/pages/CheckoutPage'
 import { HomePage } from '@/pages/HomePage'
@@ -47,6 +48,7 @@ export const router = createBrowserRouter([
               { path: 'orders', element: <AdminOrdersPage key="all" mode="all" /> },
               { path: 'products', element: <AdminProductsPage /> },
               { path: 'categories', element: <AdminCategoriesPage /> },
+              { path: 'users', element: <AdminUsersPage /> },
             ],
           },
         ],

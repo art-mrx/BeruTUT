@@ -1,9 +1,16 @@
 import { zodResolver } from '@hookform/resolvers/zod'
+import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { Link, Navigate, useLocation, useNavigate, type Location } from 'react-router-dom'
 import { useAuthStore } from '@/features/auth/authStore'
 import { useLogin } from '@/features/auth/useLogin'
 import { loginSchema, type LoginFormValues } from '@/features/auth/schemas'
+import {
+  ACCOUNT_BLOCKED_MESSAGE,
+  clearAccountBlocked,
+  isAccountBlockedError,
+  wasAccountBlocked,
+} from '@/lib/accountBlocked'
 import { getApiErrorMessage, getApiFieldErrors } from '@/lib/apiError'
 
 export function LoginPage() {
@@ -11,6 +18,7 @@ export function LoginPage() {
   const location = useLocation()
   const login = useLogin()
   const isAuthenticated = useAuthStore((state) => Boolean(state.user))
+  const [kickedOut] = useState(wasAccountBlocked)
 
   const {
     register,
@@ -27,7 +35,10 @@ export function LoginPage() {
 
   function onSubmit(values: LoginFormValues) {
     login.mutate(values, {
-      onSuccess: () => navigate(from, { replace: true }),
+      onSuccess: () => {
+        clearAccountBlocked()
+        navigate(from, { replace: true })
+      },
       onError: (error) => {
         const fieldErrors = getApiFieldErrors(error)
         if (fieldErrors) {
@@ -42,6 +53,10 @@ export function LoginPage() {
   return (
     <div className="mx-auto max-w-sm">
       <h1 className="mb-4 text-2xl font-semibold text-gray-900">Вход</h1>
+
+      {kickedOut && !login.isError && (
+        <p className="mb-4 rounded bg-red-50 px-3 py-2 text-sm text-red-800">{ACCOUNT_BLOCKED_MESSAGE}</p>
+      )}
 
       <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
         <label className="flex flex-col gap-1 text-sm">
@@ -67,7 +82,9 @@ export function LoginPage() {
         </label>
 
         {login.isError && !getApiFieldErrors(login.error) && (
-          <p className="text-sm text-red-600">{getApiErrorMessage(login.error, 'Не удалось войти.')}</p>
+          <p className="text-sm text-red-600">{isAccountBlockedError(login.error)
+              ? ACCOUNT_BLOCKED_MESSAGE
+              : getApiErrorMessage(login.error, 'Не удалось войти.')}</p>
         )}
 
         <button

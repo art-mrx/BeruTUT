@@ -44,6 +44,13 @@ public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, A
             throw new AuthenticationException(InvalidTokenMessage);
         }
 
+        // Checked before the "reused token" branch below: blocking a user revokes their refresh tokens,
+        // and that must read as "blocked", not as a token-theft signal.
+        if (stored.User.IsBlocked)
+        {
+            throw new ForbiddenException("This account has been blocked.");
+        }
+
         if (stored.RevokedAt is not null)
         {
             // The token was already used/revoked once but is being presented again — a strong signal

@@ -29,6 +29,9 @@ export function AdminLayout() {
         <NavLink to="/admin/categories" className={linkClass}>
           Категории
         </NavLink>
+        <NavLink to="/admin/users" className={linkClass}>
+          Пользователи
+        </NavLink>
       </nav>
       <Outlet />
     </div>

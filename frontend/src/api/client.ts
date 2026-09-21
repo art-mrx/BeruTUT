@@ -1,5 +1,6 @@
 import axios, { type AxiosError, type InternalAxiosRequestConfig } from 'axios'
 import { useAuthStore } from '@/features/auth/authStore'
+import { isAccountBlockedError, markAccountBlocked } from '@/lib/accountBlocked'
 import type { AuthResult } from '@/types'
 
 export const apiClient = axios.create({ baseURL: '/api' })
@@ -52,6 +53,9 @@ apiClient.interceptors.response.use(
         originalRequest.headers.set('Authorization', `Bearer ${newAccessToken}`)
         return apiClient(originalRequest)
       } catch (refreshError) {
+        if (isAccountBlockedError(refreshError)) {
+          markAccountBlocked()
+        }
         useAuthStore.getState().clearAuth()
         return Promise.reject(refreshError)
       }

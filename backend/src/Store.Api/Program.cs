@@ -5,6 +5,7 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Serilog;
 using Store.Api.Middleware;
+using Store.Api.Security;
 using Store.Api.Services;
 using Store.Application;
 using Store.Application.Common.Interfaces;
@@ -61,6 +62,11 @@ builder.Services
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings.SigningKey)),
             ValidateLifetime = true,
             ClockSkew = TimeSpan.FromSeconds(30)
+        };
+
+        options.Events = new JwtBearerEvents
+        {
+            OnTokenValidated = UserStatusTokenValidator.ValidateAsync
         };
     });
 

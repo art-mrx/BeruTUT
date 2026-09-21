@@ -13,6 +13,7 @@ namespace Store.Application.Features.Auth.Commands.Login;
 public class LoginCommandHandler : IRequestHandler<LoginCommand, AuthResultDto>
 {
     private const string InvalidCredentialsMessage = "Invalid email or password.";
+    private const string AccountBlockedMessage = "This account has been blocked.";
 
     private readonly IApplicationDbContext _context;
     private readonly IPasswordHasher _passwordHasher;
@@ -42,6 +43,11 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, AuthResultDto>
         if (user is null || !_passwordHasher.Verify(user.PasswordHash, request.Password))
         {
             throw new AuthenticationException(InvalidCredentialsMessage);
+        }
+
+        if (user.IsBlocked)
+        {
+            throw new ForbiddenException(AccountBlockedMessage);
         }
 
         var (accessToken, accessTokenExpiresAt) = _tokenService.GenerateAccessToken(user);

@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Pagination } from '@/components/Pagination'
-import { ORDER_STATUS_LABELS } from '@/features/orders/statusLabels'
+import { OrderStatusBadge } from '@/components/OrderStatusBadge'
 import { useOrders } from '@/features/orders/useOrders'
 import { formatPrice } from '@/lib/format'
 
@@ -46,7 +46,7 @@ export function OrdersPage() {
             </div>
             <div className="text-right">
               <p className="font-semibold text-gray-900">{formatPrice(order.totalAmount)}</p>
-              <p className="text-sm text-gray-500">{ORDER_STATUS_LABELS[order.status]}</p>
+              <div className="mt-1"><OrderStatusBadge status={order.status} /></div>
             </div>
           </Link>
         ))}

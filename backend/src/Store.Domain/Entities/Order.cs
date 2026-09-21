@@ -9,6 +9,7 @@ public class Order : BaseEntity
     public OrderStatus Status { get; set; } = OrderStatus.New;
     public decimal TotalAmount { get; set; }
     public string ShippingAddress { get; set; } = null!;
+    public string ContactPhone { get; set; } = string.Empty;
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     public User User { get; set; } = null!;

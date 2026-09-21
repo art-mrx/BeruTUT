@@ -52,6 +52,7 @@ public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, Ord
             UserId = userId,
             Status = OrderStatus.New,
             ShippingAddress = request.ShippingAddress,
+            ContactPhone = request.ContactPhone.Trim(),
             TotalAmount = cart.Items.Sum(i => i.Product.Price * i.Quantity)
         };
 

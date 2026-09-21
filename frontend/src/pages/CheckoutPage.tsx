@@ -19,7 +19,7 @@ export function CheckoutPage() {
   } = useForm<CheckoutFormValues>({ resolver: zodResolver(checkoutSchema) })
 
   function onSubmit(values: CheckoutFormValues) {
-    createOrder.mutate(values.shippingAddress, {
+    createOrder.mutate(values, {
       onSuccess: (order) => navigate(`/orders/${order.id}`, { replace: true }),
     })
   }
@@ -46,6 +46,19 @@ export function CheckoutPage() {
         <h1 className="mb-4 text-2xl font-semibold text-gray-900">Оформление заказа</h1>
 
         <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
+          <label className="flex flex-col gap-1 text-sm">
+            <span className="text-gray-700">Телефон для связи</span>
+            <input
+              type="tel"
+              autoComplete="tel"
+              placeholder="+7 900 000-00-00"
+              {...register('contactPhone')}
+              className="rounded border border-gray-300 px-3 py-2"
+            />
+            {errors.contactPhone && <span className="text-sm text-red-600">{errors.contactPhone.message}</span>}
+            <span className="text-xs text-gray-500">Мы позвоним вам, чтобы подтвердить заказ.</span>
+          </label>
+
           <label className="flex flex-col gap-1 text-sm">
             <span className="text-gray-700">Адрес доставки</span>
             <textarea

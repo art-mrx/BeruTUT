@@ -49,13 +49,14 @@ public class CreateOrderCommandHandlerTests
         var handler = new CreateOrderCommandHandler(context, CurrentUserFor(user.Id), MapperFactory.Create());
 
         // Act
-        var result = await handler.Handle(new CreateOrderCommand { ShippingAddress = "1 Main St" }, CancellationToken.None);
+        var result = await handler.Handle(new CreateOrderCommand { ShippingAddress = "1 Main St", ContactPhone = "+7 900 000-00-00" }, CancellationToken.None);
 
         // Assert
         var expectedTotal = 3 * 5.99m + 1 * 1999.99m;
         result.TotalAmount.Should().Be(expectedTotal);
         result.Items.Should().HaveCount(2);
         result.ShippingAddress.Should().Be("1 Main St");
+        result.ContactPhone.Should().Be("+7 900 000-00-00");
         result.Status.Should().Be("New");
 
         (await context.Products.FindAsync(cable.Id))!.StockQuantity.Should().Be(97);
@@ -83,7 +84,7 @@ public class CreateOrderCommandHandlerTests
         var handler = new CreateOrderCommandHandler(context, CurrentUserFor(user.Id), MapperFactory.Create());
 
         // Act
-        var act = () => handler.Handle(new CreateOrderCommand { ShippingAddress = "1 Main St" }, CancellationToken.None);
+        var act = () => handler.Handle(new CreateOrderCommand { ShippingAddress = "1 Main St", ContactPhone = "+7 900 000-00-00" }, CancellationToken.None);
 
         // Assert
         await act.Should().ThrowAsync<ConflictException>();
@@ -105,7 +106,7 @@ public class CreateOrderCommandHandlerTests
         var handler = new CreateOrderCommandHandler(context, CurrentUserFor(user.Id), MapperFactory.Create());
 
         // Act
-        var act = () => handler.Handle(new CreateOrderCommand { ShippingAddress = "1 Main St" }, CancellationToken.None);
+        var act = () => handler.Handle(new CreateOrderCommand { ShippingAddress = "1 Main St", ContactPhone = "+7 900 000-00-00" }, CancellationToken.None);
 
         // Assert
         await act.Should().ThrowAsync<ConflictException>();

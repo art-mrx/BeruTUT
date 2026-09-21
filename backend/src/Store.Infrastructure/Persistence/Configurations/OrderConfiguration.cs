@@ -10,6 +10,7 @@ public class OrderConfiguration : IEntityTypeConfiguration<Order>
     {
         builder.Property(o => o.TotalAmount).HasColumnType("decimal(18,2)");
         builder.Property(o => o.ShippingAddress).IsRequired();
+        builder.Property(o => o.ContactPhone).IsRequired().HasMaxLength(32);
 
         builder.HasOne(o => o.User)
             .WithMany(u => u.Orders)

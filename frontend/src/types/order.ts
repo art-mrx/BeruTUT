@@ -1,4 +1,4 @@
-export type OrderStatus = 'New' | 'Processing' | 'Shipped' | 'Delivered' | 'Cancelled'
+export type OrderStatus = 'New' | 'Approved' | 'Processing' | 'Shipped' | 'Delivered' | 'Cancelled'
 
 export interface OrderItem {
   id: string
@@ -14,6 +14,7 @@ export interface Order {
   status: OrderStatus
   totalAmount: number
   shippingAddress: string
+  contactPhone: string
   createdAt: string
   items: OrderItem[]
 }
@@ -22,4 +23,5 @@ export interface AdminOrder extends Order {
   userId: string
   customerEmail: string
   customerFullName: string
+  allowedNextStatuses: OrderStatus[]
 }

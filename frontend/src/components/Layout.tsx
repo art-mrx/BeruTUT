@@ -21,7 +21,7 @@ export function Layout() {
             {user ? (
               <>
                 <Link to="/orders">Мои заказы</Link>
-                {user.role === 'Admin' && <Link to="/admin/products">Админка</Link>}
+                {user.role === 'Admin' && <Link to="/admin">Админка</Link>}
                 <span className="hidden text-gray-400 sm:inline">{user.email}</span>
                 <button type="button" onClick={logout} className="text-gray-700 hover:text-gray-900">
                   Выйти

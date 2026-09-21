@@ -6,6 +6,7 @@ public class OrderDto
     public string Status { get; set; } = null!;
     public decimal TotalAmount { get; set; }
     public string ShippingAddress { get; set; } = null!;
+    public string ContactPhone { get; set; } = null!;
     public DateTime CreatedAt { get; set; }
     public List<OrderItemDto> Items { get; set; } = new();
 }

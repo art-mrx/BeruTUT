@@ -1,5 +1,5 @@
 import { Link, useParams } from 'react-router-dom'
-import { ORDER_STATUS_LABELS } from '@/features/orders/statusLabels'
+import { OrderStatusBadge } from '@/components/OrderStatusBadge'
 import { useOrder } from '@/features/orders/useOrder'
 import { formatPrice } from '@/lib/format'
 
@@ -28,11 +28,19 @@ export function OrderDetailPage() {
         <h1 className="text-2xl font-semibold text-gray-900">
           Заказ от {new Date(order.createdAt).toLocaleDateString('ru-RU')}
         </h1>
-        <span className="rounded-full bg-gray-100 px-3 py-1 text-sm font-medium text-gray-700">
-          {ORDER_STATUS_LABELS[order.status]}
-        </span>
+        <OrderStatusBadge status={order.status} />
       </div>
 
+      {order.status === 'New' && (
+        <p className="mb-4 rounded bg-amber-50 px-3 py-2 text-sm text-amber-800">
+          Заказ ожидает подтверждения — мы позвоним вам по указанному номеру.
+        </p>
+      )}
+      {order.status === 'Cancelled' && (
+        <p className="mb-4 rounded bg-red-50 px-3 py-2 text-sm text-red-800">Заказ отклонён.</p>
+      )}
+
+      <p className="text-sm text-gray-600">Телефон: {order.contactPhone || "—"}</p>
       <p className="mb-4 text-sm text-gray-600">Адрес доставки: {order.shippingAddress}</p>
 
       <div className="rounded-lg border border-gray-200 bg-white p-4">

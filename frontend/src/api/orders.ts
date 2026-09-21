@@ -1,8 +1,13 @@
 import { apiClient } from '@/api/client'
 import type { AdminOrder, Order, OrderStatus, PaginatedList } from '@/types'
 
+export interface CreateOrderPayload {
+  shippingAddress: string
+  contactPhone: string
+}
+
 export const ordersApi = {
-  create: (shippingAddress: string) => apiClient.post<Order>('/orders', { shippingAddress }).then((r) => r.data),
+  create: (payload: CreateOrderPayload) => apiClient.post<Order>('/orders', payload).then((r) => r.data),
 
   list: (params: { page?: number; pageSize?: number } = {}) =>
     apiClient.get<PaginatedList<Order>>('/orders', { params }).then((r) => r.data),

@@ -1,4 +1,5 @@
-import { createBrowserRouter } from 'react-router-dom'
+import { createBrowserRouter, Navigate } from 'react-router-dom'
+import { AdminLayout } from '@/components/AdminLayout'
 import { Layout } from '@/components/Layout'
 import { AdminCategoriesPage } from '@/pages/admin/AdminCategoriesPage'
 import { AdminOrdersPage } from '@/pages/admin/AdminOrdersPage'
@@ -37,9 +38,17 @@ export const router = createBrowserRouter([
         path: 'admin',
         element: <AdminRoute />,
         children: [
-          { path: 'products', element: <AdminProductsPage /> },
-          { path: 'categories', element: <AdminCategoriesPage /> },
-          { path: 'orders', element: <AdminOrdersPage /> },
+          {
+            element: <AdminLayout />,
+            children: [
+              { index: true, element: <Navigate to="/admin/orders/pending" replace /> },
+              // key forces a fresh page state (page number, filter) when switching between the two order views
+              { path: 'orders/pending', element: <AdminOrdersPage key="pending" mode="pending" /> },
+              { path: 'orders', element: <AdminOrdersPage key="all" mode="all" /> },
+              { path: 'products', element: <AdminProductsPage /> },
+              { path: 'categories', element: <AdminCategoriesPage /> },
+            ],
+          },
         ],
       },
       { path: '*', element: <NotFoundPage /> },

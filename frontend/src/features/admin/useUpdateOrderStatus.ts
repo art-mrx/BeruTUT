@@ -7,6 +7,11 @@ export function useUpdateOrderStatus() {
 
   return useMutation({
     mutationFn: ({ id, status }: { id: string; status: OrderStatus }) => adminOrdersApi.updateStatus(id, status),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin', 'orders'] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'orders'] })
+      // Rejecting an order returns its items to stock, so product stock shown elsewhere is stale now.
+      queryClient.invalidateQueries({ queryKey: ['admin', 'products'] })
+      queryClient.invalidateQueries({ queryKey: ['products'] })
+    },
   })
 }

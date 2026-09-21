@@ -45,6 +45,8 @@ dotnet ef database update --project src/Store.Infrastructure --startup-project s
 dotnet run --project src/Store.Api --urls "http://localhost:5080"
 ```
 
+> Секреты нужно задавать **в вашем собственном терминале**, где потом запускаете backend. Если они заданы из другого окружения (например, из десктопного приложения Claude, которое пишет в виртуализированный `%APPDATA%`), обычный терминал их не увидит и backend упадёт с `500 An unexpected error occurred` на логине — подробности в [docs/DECISIONS.md](docs/DECISIONS.md).
+
 При первом запуске в Development-окружении автоматически создаётся админ-пользователь (email — `AdminSeed:Email` из `appsettings.json`, пароль — тот, что задан выше через user-secrets).
 
 Swagger UI: http://localhost:5080/swagger

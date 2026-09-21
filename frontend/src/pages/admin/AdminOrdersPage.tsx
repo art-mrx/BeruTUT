@@ -4,7 +4,9 @@ import { Pagination } from '@/components/Pagination'
 import { useAdminOrders } from '@/features/admin/useAdminOrders'
 import { useUpdateOrderStatus } from '@/features/admin/useUpdateOrderStatus'
 import { ORDER_STATUS_ACTIONS, ORDER_STATUS_LABELS } from '@/features/orders/statusLabels'
+import { useDebouncedValue } from '@/hooks/useDebouncedValue'
 import { getApiErrorMessage } from '@/lib/apiError'
+import { startOfLocalDayIso, startOfNextLocalDayIso } from '@/lib/dates'
 import { formatPrice } from '@/lib/format'
 import type { AdminOrder, OrderStatus } from '@/types'
 
@@ -18,16 +20,49 @@ const ACTION_BUTTON_CLASSES: Partial<Record<OrderStatus, string>> = {
 const DEFAULT_ACTION_CLASSES = 'border border-gray-300 text-gray-700 hover:bg-gray-50'
 
 export function AdminOrdersPage({ mode }: { mode: 'pending' | 'all' }) {
+  const isAll = mode === 'all'
   const [page, setPage] = useState(1)
   const [statusFilter, setStatusFilter] = useState<OrderStatus | ''>('')
+  const [search, setSearch] = useState('')
+  const [dateFrom, setDateFrom] = useState('')
+  const [dateTo, setDateTo] = useState('')
+  const [sortBy, setSortBy] = useState<'newest' | 'oldest'>('newest')
   const [actionError, setActionError] = useState<string | null>(null)
+
+  const debouncedSearch = useDebouncedValue(search).trim()
+  const rangeInvalid = Boolean(dateFrom && dateTo && dateFrom > dateTo)
+  const filtersActive = Boolean(statusFilter || search || dateFrom || dateTo)
 
   const status: OrderStatus | undefined = mode === 'pending' ? 'New' : statusFilter || undefined
   const { data, isLoading, isError } = useAdminOrders(
-    { page, pageSize: PAGE_SIZE, status },
-    { refetchInterval: mode === 'pending' ? 30_000 : undefined },
+    {
+      page,
+      pageSize: PAGE_SIZE,
+      status,
+      sortBy,
+      search: isAll && debouncedSearch ? debouncedSearch : undefined,
+      createdFrom: isAll && dateFrom ? startOfLocalDayIso(dateFrom) : undefined,
+      createdTo: isAll && dateTo ? startOfNextLocalDayIso(dateTo) : undefined,
+    },
+    { refetchInterval: mode === 'pending' ? 30_000 : undefined, enabled: !rangeInvalid },
   )
   const updateStatus = useUpdateOrderStatus()
+
+  // Any filter change restarts pagination, otherwise the current page may not exist in the new result set.
+  function changeFilter<T>(setter: (value: T) => void) {
+    return (value: T) => {
+      setter(value)
+      setPage(1)
+    }
+  }
+
+  function resetFilters() {
+    setStatusFilter('')
+    setSearch('')
+    setDateFrom('')
+    setDateTo('')
+    setPage(1)
+  }
 
   function handleAction(order: AdminOrder, next: OrderStatus) {
     if (
@@ -45,31 +80,88 @@ export function AdminOrdersPage({ mode }: { mode: 'pending' | 'all' }) {
 
   return (
     <div>
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-2xl font-semibold text-gray-900">
-          {mode === 'pending' ? 'Заказы, ожидающие подтверждения' : 'Все заказы'}
-        </h1>
-        {mode === 'all' && (
-          <label className="flex items-center gap-2 text-sm">
-            <span className="text-gray-600">Статус</span>
-            <select
-              value={statusFilter}
-              onChange={(e) => {
-                setStatusFilter(e.target.value as OrderStatus | '')
-                setPage(1)
-              }}
-              className="rounded border border-gray-300 px-2 py-1"
-            >
-              <option value="">Все</option>
-              {ALL_STATUSES.map((s) => (
-                <option key={s} value={s}>
-                  {ORDER_STATUS_LABELS[s]}
-                </option>
-              ))}
-            </select>
-          </label>
+      <h1 className="mb-4 text-2xl font-semibold text-gray-900">
+        {isAll ? 'Все заказы' : 'Заказы, ожидающие подтверждения'}
+      </h1>
+
+      <div className="mb-4 flex flex-wrap items-end gap-3 rounded-lg border border-gray-200 bg-white p-3 text-sm">
+        {isAll && (
+          <>
+            <label className="flex flex-col gap-1">
+              <span className="text-gray-600">Номер заказа</span>
+              <input
+                type="search"
+                value={search}
+                onChange={(e) => changeFilter(setSearch)(e.target.value)}
+                placeholder="например, 1a15acc7"
+                className="w-44 rounded border border-gray-300 px-2 py-1"
+              />
+            </label>
+
+            <label className="flex flex-col gap-1">
+              <span className="text-gray-600">Статус</span>
+              <select
+                value={statusFilter}
+                onChange={(e) => changeFilter(setStatusFilter)(e.target.value as OrderStatus | '')}
+                className="rounded border border-gray-300 px-2 py-1"
+              >
+                <option value="">Все</option>
+                {ALL_STATUSES.map((s) => (
+                  <option key={s} value={s}>
+                    {ORDER_STATUS_LABELS[s]}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <label className="flex flex-col gap-1">
+              <span className="text-gray-600">Дата с</span>
+              <input
+                type="date"
+                value={dateFrom}
+                max={dateTo || undefined}
+                onChange={(e) => changeFilter(setDateFrom)(e.target.value)}
+                className="rounded border border-gray-300 px-2 py-1"
+              />
+            </label>
+
+            <label className="flex flex-col gap-1">
+              <span className="text-gray-600">Дата по</span>
+              <input
+                type="date"
+                value={dateTo}
+                min={dateFrom || undefined}
+                onChange={(e) => changeFilter(setDateTo)(e.target.value)}
+                className="rounded border border-gray-300 px-2 py-1"
+              />
+            </label>
+          </>
+        )}
+
+        <label className="flex flex-col gap-1">
+          <span className="text-gray-600">Сортировка</span>
+          <select
+            value={sortBy}
+            onChange={(e) => changeFilter(setSortBy)(e.target.value as 'newest' | 'oldest')}
+            className="rounded border border-gray-300 px-2 py-1"
+          >
+            <option value="newest">Сначала новые</option>
+            <option value="oldest">Сначала старые</option>
+          </select>
+        </label>
+
+        {isAll && filtersActive && (
+          <button
+            type="button"
+            onClick={resetFilters}
+            className="rounded border border-gray-300 px-3 py-1 text-gray-700 hover:bg-gray-50"
+          >
+            Сбросить
+          </button>
         )}
       </div>
+
+      {rangeInvalid && <p className="mb-3 text-sm text-red-600">Дата «с» не может быть позже даты «по».</p>}
 
       {mode === 'pending' && (
         <p className="mb-4 text-sm text-gray-500">

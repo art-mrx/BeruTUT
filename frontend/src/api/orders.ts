@@ -15,8 +15,20 @@ export const ordersApi = {
   getById: (id: string) => apiClient.get<Order>(`/orders/${id}`).then((r) => r.data),
 }
 
+export interface AdminOrderListParams {
+  page?: number
+  pageSize?: number
+  status?: OrderStatus
+  /** ISO timestamps: createdFrom inclusive, createdTo exclusive. */
+  createdFrom?: string
+  createdTo?: string
+  /** Fragment of the order number. */
+  search?: string
+  sortBy?: 'newest' | 'oldest'
+}
+
 export const adminOrdersApi = {
-  list: (params: { page?: number; pageSize?: number; status?: OrderStatus } = {}) =>
+  list: (params: AdminOrderListParams = {}) =>
     apiClient.get<PaginatedList<AdminOrder>>('/admin/orders', { params }).then((r) => r.data),
 
   updateStatus: (id: string, status: OrderStatus) =>
